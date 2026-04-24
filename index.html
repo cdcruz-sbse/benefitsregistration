@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Open Enrollment Status Widget</title>
+  <style>
+    /* =========================================================
+       Open Enrollment Status Banner — standalone widget
+       Scoped with .oe- prefix to avoid collisions with host page
+       ========================================================= */
+    .oe-widget {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Helvetica Neue", Arial, sans-serif;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .oe-widget *,
+    .oe-widget *::before,
+    .oe-widget *::after {
+      box-sizing: border-box;
+    }
+
+    .oe-banner {
+      width: 100%;
+      border-radius: 8px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border: 1px solid transparent;
+      transition: background 0.25s ease, border-color 0.25s ease;
+    }
+
+    /* Registered (green) state */
+    .oe-banner.oe-registered {
+      background: #EAF3DE;
+      border-color: #97C459;
+    }
+    .oe-banner.oe-registered .oe-icon {
+      background: #97C459;
+      color: #173404;
+    }
+    .oe-banner.oe-registered .oe-title {
+      color: #173404;
+    }
+    .oe-banner.oe-registered .oe-subtitle {
+      color: #3B6D11;
+    }
+
+    /* Not registered (red) state */
+    .oe-banner.oe-not-registered {
+      background: #FCEBEB;
+      border-color: #E24B4A;
+    }
+    .oe-banner.oe-not-registered .oe-icon {
+      background: #E24B4A;
+      color: #FFFFFF;
+    }
+    .oe-banner.oe-not-registered .oe-title {
+      color: #501313;
+    }
+    .oe-banner.oe-not-registered .oe-subtitle {
+      color: #791F1F;
+    }
+    .oe-banner.oe-not-registered .oe-countdown {
+      color: #791F1F;
+      border-left: 1px solid rgba(122, 31, 31, 0.2);
+    }
+
+    .oe-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .oe-icon svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .oe-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .oe-title {
+      margin: 0 0 2px 0;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .oe-subtitle {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .oe-countdown {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      flex-shrink: 0;
+      padding: 0 12px;
+    }
+
+    .oe-days {
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    .oe-days-label {
+      font-size: 11px;
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .oe-cta {
+      background: #A32D2D;
+      color: #FFFFFF;
+      border: none;
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      flex-shrink: 0;
+      white-space: nowrap;
+      text-decoration: none;
+      display: inline-block;
+      transition: background 0.15s ease;
+      font-family: inherit;
+    }
+
+    .oe-cta:hover {
+      background: #791F1F;
+    }
+
+    .oe-cta:focus-visible {
+      outline: 2px solid #501313;
+      outline-offset: 2px;
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 600px) {
+      .oe-banner {
+        flex-wrap: wrap;
+        padding: 14px 16px;
+      }
+      .oe-content {
+        flex: 1 1 calc(100% - 52px);
+      }
+      .oe-countdown {
+        order: 3;
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 0 0 0;
+        border-left: none !important;
+        margin-left: 52px;
+      }
+      .oe-cta {
+        order: 4;
+        width: 100%;
+        margin-top: 8px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =========================================================
+       WIDGET MARKUP — copy this <div> block into your intranet template
+       ========================================================= -->
+  <div class="oe-widget">
+    <div id="oe-banner" class="oe-banner" role="status" aria-live="polite">
+      <div class="oe-icon" id="oe-icon" aria-hidden="true">
+        <svg id="oe-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></svg>
+      </div>
+
+      <div class="oe-content">
+        <p class="oe-title" id="oe-title"></p>
+        <p class="oe-subtitle" id="oe-subtitle"></p>
+      </div>
+
+      <div class="oe-countdown" id="oe-countdown" aria-hidden="true">
+        <span class="oe-days" id="oe-days">—</span>
+        <span class="oe-days-label">days left</span>
+      </div>
+
+      <button class="oe-cta" id="oe-cta" type="button">
+        Register in ADP →
+      </button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // =========================================================
+      // CONFIG — edit these values per deployment
+      // =========================================================
+      var CONFIG = {
+        // Set to true if the user has already registered for open enrollment.
+        // In production, replace this with your server-rendered value or
+        // API-fetched value (e.g., from ADP Workforce Now).
+        userIsRegistered: false,
+
+        // Enrollment deadline (ISO format: YYYY-MM-DDTHH:mm:ss)
+        deadline: '2026-05-15T23:59:59',
+
+        // ADP Workforce Now URL that the CTA button opens
+        adpUrl: 'https://workforcenow.adp.com/'
+      };
+
+      // =========================================================
+      // Icon SVG paths
+      // =========================================================
+      var ICON_CHECK =
+        '<path d="M20 6 9 17l-5-5"/>';
+      var ICON_ALERT =
+        '<circle cx="12" cy="12" r="10"/>' +
+        '<line x1="12" y1="8" x2="12" y2="12"/>' +
+        '<line x1="12" y1="16" x2="12.01" y2="16"/>';
+
+      // =========================================================
+      // Helpers
+      // =========================================================
+      function formatDate(date) {
+        return date.toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric'
+        });
+      }
+
+      function daysUntil(targetDate) {
+        var msPerDay = 1000 * 60 * 60 * 24;
+        var diff = targetDate.getTime() - Date.now();
+        return Math.max(0, Math.ceil(diff / msPerDay));
+      }
+
+      // =========================================================
+      // Render
+      // =========================================================
+      function render() {
+        var banner = document.getElementById('oe-banner');
+        var iconSvg = document.getElementById('oe-icon-svg');
+        var title = document.getElementById('oe-title');
+        var subtitle = document.getElementById('oe-subtitle');
+        var countdown = document.getElementById('oe-countdown');
+        var daysEl = document.getElementById('oe-days');
+        var cta = document.getElementById('oe-cta');
+
+        var deadlineDate = new Date(CONFIG.deadline);
+        var daysLeft = daysUntil(deadlineDate);
+        var deadlineStr = formatDate(deadlineDate);
+
+        if (CONFIG.userIsRegistered) {
+          banner.className = 'oe-banner oe-registered';
+          iconSvg.innerHTML = ICON_CHECK;
+          title.textContent = "You're enrolled in open enrollment";
+          subtitle.textContent =
+            'Your benefits elections are submitted. No further action needed.';
+          countdown.style.display = 'none';
+          cta.style.display = 'none';
+        } else {
+          banner.className = 'oe-banner oe-not-registered';
+          iconSvg.innerHTML = ICON_ALERT;
+          title.textContent = 'Action needed: register for open enrollment';
+          subtitle.textContent =
+            'Deadline: ' +
+            deadlineStr +
+            '. Submit your elections in ADP to avoid losing coverage.';
+          countdown.style.display = 'flex';
+          daysEl.textContent = daysLeft;
+          cta.style.display = 'inline-block';
+        }
+      }
+
+      // =========================================================
+      // Init — wire up click handler and do first render
+      // =========================================================
+      function init() {
+        var cta = document.getElementById('oe-cta');
+        cta.addEventListener('click', function () {
+          CONFIG.userIsRegistered = true;
+          render();
+        });
+        render();
+      }
+
+      // Run on DOM ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
+
+</body>
+</html>
